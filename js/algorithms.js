@@ -155,3 +155,77 @@ async function runDijkstra() {
 
   return found;
 }
+
+// ── A* (A-STAR) ────────────────────────────────────────────
+// A* is like Dijkstra but with a superpower: it uses a
+// heuristic h(n) to estimate how far it still is from the
+// goal. This guides the search toward the goal so it explores
+// far fewer cells than BFS or Dijkstra.
+//
+// Formula:  f(n) = g(n) + h(n)
+//   g(n) = actual steps taken from start to cell n
+//   h(n) = estimated steps from cell n to goal (Manhattan distance)
+//   f(n) = total priority score — lowest f is explored first
+
+// Manhattan distance: count steps as if walking on city streets
+// (no diagonals). |row difference| + |column difference|
+function heuristic(a, b) {
+  return Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+}
+
+async function runAstar() {
+  resetNodes();
+
+  // The open list holds cells we know about but have not fully explored yet
+  const openList = [startNode];
+
+  startNode.g = 0;                              // 0 steps taken so far
+  startNode.h = heuristic(startNode, endNode);  // estimate to goal
+  startNode.f = startNode.g + startNode.h;      // total score
+
+  let found = false;
+
+  while (openList.length > 0) {
+
+    // Always pick the cell with the lowest f score from the open list
+    // This is the cell that looks most promising (cheap + close to goal)
+    openList.sort((a, b) => a.f - b.f);
+    const current = openList.shift();
+
+    // Mark as visited
+    if (current !== startNode && current !== endNode) {
+      current.state = 'closed';
+    }
+
+    // Did we reach the goal?
+    if (current === endNode) {
+      found = true;
+      break;
+    }
+
+    // Check each neighbor
+    for (const neighbor of getNeighbors(current)) {
+      // g score if we travel through current to reach this neighbor
+      const tentativeG = current.g + 1;
+
+      // Only update if this is a better (cheaper) path to the neighbor
+      if (tentativeG < neighbor.g) {
+        neighbor.parent = current;
+        neighbor.g      = tentativeG;
+        neighbor.h      = heuristic(neighbor, endNode);
+        neighbor.f      = neighbor.g + neighbor.h;
+
+        // Add to open list if not already there
+        if (!openList.includes(neighbor)) {
+          neighbor.state = 'open';
+          openList.push(neighbor);
+        }
+      }
+    }
+
+    draw();
+    await sleep(getDelay());
+  }
+
+  return found;
+}

@@ -39,13 +39,14 @@ async function runAlgorithm() {
   const startTime = performance.now();
   let found       = false;
 
-//   // Call the correct algorithm function
-//   if      (algo === 'bfs')      found = await runBFS();
-//   // Dijkstra and A* will be added in the next steps
+  // Call the correct algorithm function
 
+//   if      (algo === 'bfs')      found = await runBFS();
+//   else if (algo === 'dijkstra') found = await runDijkstra();
+//   // A* will be added in the next step
   if      (algo === 'bfs')      found = await runBFS();
   else if (algo === 'dijkstra') found = await runDijkstra();
-  // A* will be added in the next step
+  else if (algo === 'astar')    found = await runAstar();
 
   const ms = Math.round(performance.now() - startTime);
 
