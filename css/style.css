@@ -1,0 +1,72 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0a0a0f;
+  color: #e8e8f0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 22px;
+  color: #7c6af7;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #6b6b8a;
+  margin-bottom: 16px;
+}
+
+/* ── TOOLBAR ─────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 10px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.tool-btn {
+  font-size: 11px;
+  font-weight: bold;
+  padding: 7px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: opacity 0.15s;
+  border: 2px solid transparent;
+}
+.tool-btn:active { opacity: 0.75; }
+
+#btn-wall  { background: #2e2e4e; border-color: #7070cc; color: #c0c0ff; }
+#btn-start { background: #0e2a22; border-color: #4dd9ac; color: #4dd9ac; }
+#btn-end   { background: #2a0e18; border-color: #f74d7c; color: #f74d7c; }
+#btn-erase { background: #222222; border-color: #888899; color: #aaaabb; }
+#btn-maze  { background: #1a1a0a; border-color: #aaaa30; color: #dddd50; }
+#btn-reset { background: #2a1010; border-color: #aa3333; color: #ff8080; }
+
+.tool-btn.active { border-color: #ffffff !important; }
+
+/* ── CANVAS ──────────────────────────────────────── */
+canvas {
+  border: 1.5px solid #3a3a5c;
+  border-radius: 8px;
+  cursor: crosshair;
+  display: block;
+}
+
+.hint {
+  font-size: 11px;
+  color: #6b6b8a;
+  margin-top: 8px;
+}
