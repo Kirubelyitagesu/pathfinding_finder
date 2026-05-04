@@ -89,3 +89,69 @@ async function runBFS() {
 
   return found;
 }
+
+// ── DIJKSTRA ───────────────────────────────────────────────
+// Dijkstra always picks the unvisited cell with the lowest
+// total cost from the start. On our grid where every step
+// costs 1, it looks similar to BFS — but it uses a priority
+// queue sorted by cost instead of a regular queue.
+async function runDijkstra() {
+  resetNodes();
+
+  // Put every cell in the unvisited set
+  const unvisited = new Set();
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      unvisited.add(grid[r][c]);
+
+  // Start cell costs 0 to reach
+  startNode.dist = 0;
+  let found = false;
+
+  while (unvisited.size > 0) {
+
+    // Pick the unvisited cell with the lowest cost (the "cheapest" one)
+    // This is what makes Dijkstra different from BFS
+    let current = null;
+    for (const node of unvisited) {
+      if (!current || node.dist < current.dist) current = node;
+    }
+
+    // If the cheapest cell costs Infinity, everything left is unreachable
+    if (!current || current.dist === Infinity) break;
+
+    // Remove current from unvisited
+    unvisited.delete(current);
+
+    // Mark as visited
+    if (current !== startNode && current !== endNode) {
+      current.state = 'closed';
+    }
+
+    // Did we reach the goal?
+    if (current === endNode) {
+      found = true;
+      break;
+    }
+
+    // Check each neighbor
+    for (const neighbor of getNeighbors(current)) {
+      if (!unvisited.has(neighbor)) continue; // already visited, skip
+
+      // Cost to reach neighbor through current cell
+      const newCost = current.dist + 1;
+
+      // If this path is cheaper than what we knew before, update it
+      if (newCost < neighbor.dist) {
+        neighbor.dist   = newCost;
+        neighbor.parent = current;
+        neighbor.state  = 'open';
+      }
+    }
+
+    draw();
+    await sleep(getDelay());
+  }
+
+  return found;
+}

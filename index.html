@@ -13,10 +13,15 @@
 
   <!-- ROW 1: algorithm picker + run + clear + speed -->
   <div class="controls">
-    <select id="algo-select">
+    <!-- <select id="algo-select">
       <option value="bfs">BFS (Breadth-First)</option>
       <option value="dijkstra" disabled>Dijkstra — coming soon</option>
       <option value="astar"    disabled>A* Search — coming soon</option>
+    </select> -->
+    <select id="algo-select">
+        <option value="bfs">BFS (Breadth-First)</option>
+        <option value="dijkstra">Dijkstra</option>
+        <option value="astar" disabled>A* Search — coming soon</option>
     </select>
     <button class="run-btn"   onclick="runAlgorithm()">&#9654; Run</button>
     <button class="clear-btn" onclick="clearPath()">Clear Path</button>
