@@ -11,6 +11,22 @@
   <h1>Pathfinding Visualizer</h1>
   <p class="subtitle">BFS · Dijkstra · A* — pure algorithms, no libraries</p>
 
+  <!-- ROW 1: algorithm picker + run + clear + speed -->
+  <div class="controls">
+    <select id="algo-select">
+      <option value="bfs">BFS (Breadth-First)</option>
+      <option value="dijkstra" disabled>Dijkstra — coming soon</option>
+      <option value="astar"    disabled>A* Search — coming soon</option>
+    </select>
+    <button class="run-btn"   onclick="runAlgorithm()">&#9654; Run</button>
+    <button class="clear-btn" onclick="clearPath()">Clear Path</button>
+    <div class="speed-row">
+      Speed
+      <input type="range" id="speed-slider" min="1" max="5" value="3" />
+    </div>
+  </div>
+
+  <!-- ROW 2: drawing tools -->
   <div class="toolbar">
     <button class="tool-btn active" id="btn-wall"  onclick="setTool('wall')">&#9632; Draw Wall</button>
     <button class="tool-btn"        id="btn-start" onclick="setTool('start')">&#9711; Set Start</button>
@@ -21,11 +37,24 @@
   </div>
 
   <canvas id="grid-canvas"></canvas>
-  <p class="hint" id="hint">Select a tool above, then click or drag on the grid</p>
 
-  <!-- Load JS files in order: grid first, then tools, then main -->
+  <p class="hint" id="hint">Draw walls then press Run to watch BFS search</p>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="leg"><div class="leg-sq" style="background:#4dd9ac"></div>Start</div>
+    <div class="leg"><div class="leg-sq" style="background:#f74d7c"></div>End</div>
+    <div class="leg"><div class="leg-sq" style="background:#5a5ab8"></div>Wall</div>
+    <div class="leg"><div class="leg-sq" style="background:#4dd9ac55;border:1px solid #4dd9ac"></div>Frontier</div>
+    <div class="leg"><div class="leg-sq" style="background:#7c6af755;border:1px solid #7c6af7"></div>Visited</div>
+    <div class="leg"><div class="leg-sq" style="background:#f7a04d"></div>Path</div>
+  </div>
+
+  <!-- JS files: order matters -->
   <script src="js/grid.js"></script>
   <script src="js/tools.js"></script>
+  <script src="js/algorithms.js"></script>
+  <script src="js/runner.js"></script>
   <script src="js/main.js"></script>
 
 </body>
