@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pathfinding Visualizer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0f;
+      color: #e8e8f0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 22px;
+      color: #7c6af7;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: #6b6b8a;
+      margin-bottom: 20px;
+    }
+
+    canvas {
+      border: 1.5px solid #3a3a5c;
+      border-radius: 8px;
+      cursor: crosshair;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Pathfinding Visualizer</h1>
+  <p class="subtitle">BFS · Dijkstra · A* — pure algorithms, no libraries</p>
+
+  <canvas id="grid-canvas"></canvas>
+
+  <script>
+    // ── GRID SETTINGS ──────────────────────────────────────────
+    const COLS = 38;
+    const ROWS = 20;
+    let CELL;          // cell size in pixels (calculated from window width)
+    let W, H;          // total canvas width and height
+
+    // ── GRID DATA ──────────────────────────────────────────────
+    // Each cell is an object with its row, column, and state.
+    // We will add more properties (wall, parent, g, h, f) in later steps.
+    let grid = [];
+    let startNode = null;
+    let endNode   = null;
+
+    // ── BUILD THE GRID ─────────────────────────────────────────
+    function makeGrid() {
+      grid = [];
+      for (let r = 0; r < ROWS; r++) {
+        grid[r] = [];
+        for (let c = 0; c < COLS; c++) {
+          grid[r][c] = {
+            r,          // row index
+            c,          // column index
+            wall: false // is this cell a wall?
+          };
+        }
+      }
+      // Place start and end at fixed positions for now
+      startNode = grid[Math.floor(ROWS / 2)][3];
+      endNode   = grid[Math.floor(ROWS / 2)][COLS - 4];
+    }
+
+    // ── DRAW THE GRID ──────────────────────────────────────────
+    function draw() {
+      const canvas = document.getElementById('grid-canvas');
+      const ctx    = canvas.getContext('2d');
+
+      // Fill background
+      ctx.fillStyle = '#0e0e1a';
+      ctx.fillRect(0, 0, W, H);
+
+      // Draw each cell
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const node = grid[r][c];
+          const x    = c * CELL;
+          const y    = r * CELL;
+
+          // Choose color based on what this cell is
+          if (node === startNode) {
+            ctx.fillStyle = '#4dd9ac';          // teal  = start
+          } else if (node === endNode) {
+            ctx.fillStyle = '#f74d7c';          // pink  = end
+          } else if (node.wall) {
+            ctx.fillStyle = '#5a5ab8';          // blue-purple = wall
+          } else {
+            ctx.fillStyle = '#1a1a2e';          // dark navy = empty cell
+          }
+
+          // Draw the cell (leave 1px gap for grid lines)
+          ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
+
+          // Draw S and E labels on start and end cells
+          if (node === startNode || node === endNode) {
+            ctx.fillStyle     = '#050510';
+            ctx.font          = `bold ${Math.floor(CELL * 0.5)}px Arial`;
+            ctx.textAlign     = 'center';
+            ctx.textBaseline  = 'middle';
+            ctx.fillText(
+              node === startNode ? 'S' : 'E',
+              x + CELL / 2,
+              y + CELL / 2
+            );
+          }
+        }
+      }
+
+      // Draw grid lines on top
+      ctx.strokeStyle = '#252545';
+      ctx.lineWidth   = 0.5;
+      for (let r = 0; r <= ROWS; r++) {
+        ctx.beginPath();
+        ctx.moveTo(0, r * CELL);
+        ctx.lineTo(W, r * CELL);
+        ctx.stroke();
+      }
+      for (let c = 0; c <= COLS; c++) {
+        ctx.beginPath();
+        ctx.moveTo(c * CELL, 0);
+        ctx.lineTo(c * CELL, H);
+        ctx.stroke();
+      }
+    }
+
+    // ── SIZE THE CANVAS TO FIT THE WINDOW ─────────────────────
+    function resize() {
+      const maxWidth = Math.min(window.innerWidth - 40, 700);
+      CELL = Math.floor(maxWidth / COLS);
+      W    = CELL * COLS;
+      H    = CELL * ROWS;
+
+      const canvas  = document.getElementById('grid-canvas');
+      canvas.width  = W;
+      canvas.height = H;
+
+      draw();
+    }
+
+    // ── START EVERYTHING ───────────────────────────────────────
+    makeGrid();
+    resize();
+    window.addEventListener('resize', resize);
+  </script>
+
+</body>
+</html>
