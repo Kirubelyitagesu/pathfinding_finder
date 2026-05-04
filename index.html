@@ -28,14 +28,56 @@
     .subtitle {
       font-size: 12px;
       color: #6b6b8a;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
+
+    /* ── TOOLBAR ───────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 10px;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    /* Tool buttons — always visible, color-coded */
+    .tool-btn {
+      font-size: 11px;
+      font-weight: bold;
+      padding: 7px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: opacity 0.15s;
+      border: 2px solid transparent;
+    }
+    .tool-btn:active { opacity: 0.75; }
+
+    /* Each tool has its own always-visible color */
+    #btn-wall  { background: #2e2e4e; border-color: #7070cc; color: #c0c0ff; }
+    #btn-start { background: #0e2a22; border-color: #4dd9ac; color: #4dd9ac; }
+    #btn-end   { background: #2a0e18; border-color: #f74d7c; color: #f74d7c; }
+    #btn-erase { background: #222222; border-color: #888899; color: #aaaabb; }
+    #btn-maze  { background: #1a1a0a; border-color: #aaaa30; color: #dddd50; }
+    #btn-reset { background: #2a1010; border-color: #aa3333; color: #ff8080; }
+
+    /* Active tool gets a bright white border so user knows which is selected */
+    .tool-btn.active { border-color: #ffffff !important; }
 
     canvas {
       border: 1.5px solid #3a3a5c;
       border-radius: 8px;
       cursor: crosshair;
       display: block;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #6b6b8a;
+      margin-top: 8px;
     }
   </style>
 </head>
@@ -44,21 +86,31 @@
   <h1>Pathfinding Visualizer</h1>
   <p class="subtitle">BFS · Dijkstra · A* — pure algorithms, no libraries</p>
 
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <button class="tool-btn active" id="btn-wall"  onclick="setTool('wall')">&#9632; Draw Wall</button>
+    <button class="tool-btn"        id="btn-start" onclick="setTool('start')">&#9711; Set Start</button>
+    <button class="tool-btn"        id="btn-end"   onclick="setTool('end')">&#9678; Set End</button>
+    <button class="tool-btn"        id="btn-erase" onclick="setTool('erase')">&#10005; Erase</button>
+    <button class="tool-btn"        id="btn-maze"  onclick="generateMaze()">&#9889; Random Maze</button>
+    <button class="tool-btn"        id="btn-reset" onclick="resetGrid()">&#8635; Reset Grid</button>
+  </div>
+
   <canvas id="grid-canvas"></canvas>
+  <p class="hint" id="hint">Select a tool above, then click or drag on the grid</p>
 
   <script>
     // ── GRID SETTINGS ──────────────────────────────────────────
     const COLS = 38;
     const ROWS = 20;
-    let CELL;          // cell size in pixels (calculated from window width)
-    let W, H;          // total canvas width and height
+    let CELL, W, H;
 
-    // ── GRID DATA ──────────────────────────────────────────────
-    // Each cell is an object with its row, column, and state.
-    // We will add more properties (wall, parent, g, h, f) in later steps.
-    let grid = [];
+    // ── STATE ──────────────────────────────────────────────────
+    let grid      = [];
     let startNode = null;
     let endNode   = null;
+    let tool      = 'wall';    // which tool is currently active
+    let isMouseDown = false;   // is the user clicking and dragging?
 
     // ── BUILD THE GRID ─────────────────────────────────────────
     function makeGrid() {
@@ -66,14 +118,9 @@
       for (let r = 0; r < ROWS; r++) {
         grid[r] = [];
         for (let c = 0; c < COLS; c++) {
-          grid[r][c] = {
-            r,          // row index
-            c,          // column index
-            wall: false // is this cell a wall?
-          };
+          grid[r][c] = { r, c, wall: false };
         }
       }
-      // Place start and end at fixed positions for now
       startNode = grid[Math.floor(ROWS / 2)][3];
       endNode   = grid[Math.floor(ROWS / 2)][COLS - 4];
     }
@@ -83,78 +130,158 @@
       const canvas = document.getElementById('grid-canvas');
       const ctx    = canvas.getContext('2d');
 
-      // Fill background
       ctx.fillStyle = '#0e0e1a';
       ctx.fillRect(0, 0, W, H);
 
-      // Draw each cell
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           const node = grid[r][c];
-          const x    = c * CELL;
-          const y    = r * CELL;
+          const x = c * CELL;
+          const y = r * CELL;
 
-          // Choose color based on what this cell is
-          if (node === startNode) {
-            ctx.fillStyle = '#4dd9ac';          // teal  = start
-          } else if (node === endNode) {
-            ctx.fillStyle = '#f74d7c';          // pink  = end
-          } else if (node.wall) {
-            ctx.fillStyle = '#5a5ab8';          // blue-purple = wall
-          } else {
-            ctx.fillStyle = '#1a1a2e';          // dark navy = empty cell
-          }
+          if      (node === startNode) ctx.fillStyle = '#4dd9ac';
+          else if (node === endNode)   ctx.fillStyle = '#f74d7c';
+          else if (node.wall)          ctx.fillStyle = '#5a5ab8';
+          else                         ctx.fillStyle = '#1a1a2e';
 
-          // Draw the cell (leave 1px gap for grid lines)
           ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
 
-          // Draw S and E labels on start and end cells
           if (node === startNode || node === endNode) {
-            ctx.fillStyle     = '#050510';
-            ctx.font          = `bold ${Math.floor(CELL * 0.5)}px Arial`;
-            ctx.textAlign     = 'center';
-            ctx.textBaseline  = 'middle';
-            ctx.fillText(
-              node === startNode ? 'S' : 'E',
-              x + CELL / 2,
-              y + CELL / 2
-            );
+            ctx.fillStyle    = '#050510';
+            ctx.font         = `bold ${Math.floor(CELL * 0.5)}px Arial`;
+            ctx.textAlign    = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(node === startNode ? 'S' : 'E', x + CELL / 2, y + CELL / 2);
           }
         }
       }
 
-      // Draw grid lines on top
+      // Grid lines
       ctx.strokeStyle = '#252545';
       ctx.lineWidth   = 0.5;
       for (let r = 0; r <= ROWS; r++) {
-        ctx.beginPath();
-        ctx.moveTo(0, r * CELL);
-        ctx.lineTo(W, r * CELL);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, r * CELL); ctx.lineTo(W, r * CELL); ctx.stroke();
       }
       for (let c = 0; c <= COLS; c++) {
-        ctx.beginPath();
-        ctx.moveTo(c * CELL, 0);
-        ctx.lineTo(c * CELL, H);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, H); ctx.stroke();
       }
     }
 
-    // ── SIZE THE CANVAS TO FIT THE WINDOW ─────────────────────
-    function resize() {
-      const maxWidth = Math.min(window.innerWidth - 40, 700);
-      CELL = Math.floor(maxWidth / COLS);
-      W    = CELL * COLS;
-      H    = CELL * ROWS;
+    // ── TOOL SELECTION ─────────────────────────────────────────
+    function setTool(t) {
+      tool = t;
+      // Remove active class from all tool buttons
+      document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+      // Add active class only to the selected tool button
+      document.getElementById('btn-' + t).classList.add('active');
 
-      const canvas  = document.getElementById('grid-canvas');
-      canvas.width  = W;
-      canvas.height = H;
+      const hints = {
+        wall:  'Click and drag on the grid to draw walls',
+        start: 'Click any empty cell to move the Start point',
+        end:   'Click any empty cell to move the End point',
+        erase: 'Click and drag to erase walls',
+      };
+      document.getElementById('hint').textContent = hints[t] || '';
+    }
+
+    // ── FIND WHICH CELL WAS CLICKED ────────────────────────────
+    function getCellFromEvent(e) {
+      const canvas = document.getElementById('grid-canvas');
+      const rect   = canvas.getBoundingClientRect();
+      // Scale mouse position to canvas coordinate space
+      const scaleX = canvas.width  / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top)  * scaleY;
+      const c = Math.floor(x / CELL);
+      const r = Math.floor(y / CELL);
+      // Make sure we are inside the grid
+      if (r >= 0 && r < ROWS && c >= 0 && c < COLS) return grid[r][c];
+      return null;
+    }
+
+    // ── APPLY THE CURRENT TOOL TO A CELL ──────────────────────
+    function applyTool(node) {
+      if (!node) return;
+
+      if (tool === 'wall') {
+        // Only draw wall on empty cells (not on start or end)
+        if (node !== startNode && node !== endNode) node.wall = true;
+      }
+      else if (tool === 'erase') {
+        node.wall = false;
+      }
+      else if (tool === 'start') {
+        // Move start — make sure it is not on end or a wall
+        if (node !== endNode) { startNode = node; node.wall = false; }
+      }
+      else if (tool === 'end') {
+        if (node !== startNode) { endNode = node; node.wall = false; }
+      }
 
       draw();
     }
 
-    // ── START EVERYTHING ───────────────────────────────────────
+    // ── MOUSE EVENTS ON THE CANVAS ─────────────────────────────
+    const canvas = document.getElementById('grid-canvas');
+
+    canvas.addEventListener('mousedown', e => {
+      isMouseDown = true;
+      applyTool(getCellFromEvent(e));
+    });
+    canvas.addEventListener('mousemove', e => {
+      if (isMouseDown) applyTool(getCellFromEvent(e));
+    });
+    canvas.addEventListener('mouseup',   () => isMouseDown = false);
+    canvas.addEventListener('mouseleave',() => isMouseDown = false);
+
+    // Touch support (for phones/tablets)
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      isMouseDown = true;
+      applyTool(getCellFromEvent(e.touches[0]));
+    }, { passive: false });
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (isMouseDown) applyTool(getCellFromEvent(e.touches[0]));
+    }, { passive: false });
+    canvas.addEventListener('touchend', () => isMouseDown = false);
+
+    // ── RANDOM MAZE ────────────────────────────────────────────
+    function generateMaze() {
+      // Set each cell to wall with 30% probability
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          grid[r][c].wall = Math.random() < 0.30;
+        }
+      }
+      // Make sure start and end are always clear
+      startNode.wall = false;
+      endNode.wall   = false;
+      draw();
+      document.getElementById('hint').textContent = 'Maze generated! Now run an algorithm.';
+    }
+
+    // ── RESET ──────────────────────────────────────────────────
+    function resetGrid() {
+      makeGrid();
+      draw();
+      document.getElementById('hint').textContent = 'Grid reset. Select a tool to begin.';
+    }
+
+    // ── RESIZE ─────────────────────────────────────────────────
+    function resize() {
+      const maxWidth  = Math.min(window.innerWidth - 40, 700);
+      CELL            = Math.floor(maxWidth / COLS);
+      W               = CELL * COLS;
+      H               = CELL * ROWS;
+      const canvas    = document.getElementById('grid-canvas');
+      canvas.width    = W;
+      canvas.height   = H;
+      draw();
+    }
+
+    // ── START ──────────────────────────────────────────────────
     makeGrid();
     resize();
     window.addEventListener('resize', resize);
