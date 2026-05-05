@@ -1,0 +1,21 @@
+# ── OPERATING SYSTEM FILES ─────────────────────────────────
+# Mac creates these hidden files in every folder automatically
+.DS_Store
+.DS_Store?
+._*
+
+# Windows creates these thumbnail cache files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+
+.vscode/
+
+# ── LOGS ───────────────────────────────────────────────────
+# Error and debug logs that get generated automatically
+*.log
+npm-debug.log*
+
+node_modules/
+package-lock.json
