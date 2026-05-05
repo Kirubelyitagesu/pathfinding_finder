@@ -157,3 +157,81 @@ input[type="range"] {
   border-radius: 2px;
   flex-shrink: 0;
 }
+
+/* ── ALGORITHM DESCRIPTION CARD ─────────────────────────── */
+.algo-desc {
+  width: 100%;
+  max-width: 700px;
+  border-radius: 10px;
+  border: 1.5px solid #3a3a5c;
+  background: #12121e;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.desc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.desc-badge {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 3px 10px;
+  border-radius: 10px;
+  border: 1px solid;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.desc-name {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.desc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.desc-fact {
+  background: #0e0e1a;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+/* Makes a card span both columns */
+.desc-full {
+  grid-column: 1 / -1;
+}
+
+.desc-label {
+  font-size: 9px;
+  color: #6b6b8a;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.desc-val {
+  font-size: 12px;
+  color: #c0c0e0;
+  line-height: 1.6;
+}
+
+.desc-formula {
+  background: #0a0a14;
+  border-radius: 6px;
+  padding: 8px 10px;
+  border-left: 3px solid;
+}
+
+.desc-formula-val {
+  font-size: 13px;
+  font-weight: bold;
+  font-family: monospace;
+  margin-top: 4px;
+}

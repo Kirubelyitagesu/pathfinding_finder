@@ -16,6 +16,7 @@ window.addEventListener('DOMContentLoaded', () => {
   makeGrid();       // build the grid data  (grid.js)
   resize();         // size the canvas and draw  (grid.js)
   initToolEvents(); // attach mouse/touch listeners  (tools.js)
+  updateDescription();
 });
 
 window.addEventListener('resize', resize);
